@@ -2,6 +2,7 @@ import os
 import asyncio
 import re
 import requests
+from bot import Bot
 from pyrogram import Client, filters
 from pyrogram.types import Message, InputMediaDocument
 import yt_dlp  # Using yt-dlp instead of youtube_dl
@@ -11,9 +12,6 @@ from PIL import Image  # for basic image validation
 BOT_TOKEN = "8087264479:AAEb7KMTxotET82ZW2xfXydCLpTj0uHsWLc"
 API_ID = "22136772"
 API_HASH = "7541e5b6d298eb1f60dac89aae92868c"
-
-# Initialize Pyrogram client
-app = Client("primevideo_downloader", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 # Progress Bar Characters
 BAR_FILLED = "█"
@@ -114,7 +112,7 @@ async def upload_progress(current, total, chat_id, message_text):
 
 
 # Command handler for setting custom thumbnail using user-sent image
-@app.on_message(filters.photo)  # Listen for photo messages
+@Bot.on_message(filters.photo)  # Listen for photo messages
 async def setthumbnail_photo(client: Client, message: Message):
     """Sets the custom thumbnail to the photo sent by the user."""
     user_id = message.chat.id
@@ -135,7 +133,7 @@ async def setthumbnail_photo(client: Client, message: Message):
             os.remove(file_path)
 
 # Command handler for setting custom caption
-@app.on_message(filters.command("setcaption"))
+@Bot.on_message(filters.command("setcaption"))
 async def setcaption_command(client: Client, message: Message):
     """Sets a custom caption for the user."""
     user_id = message.chat.id
@@ -147,7 +145,7 @@ async def setcaption_command(client: Client, message: Message):
         await message.reply_text("Usage: /setcaption <custom_caption>")
 
 # Message handler for Prime Video links
-@app.on_message(filters.regex(r"https:\/\/app\.primevideo\.com\/detail\?.*"))
+@Bot.on_message(filters.regex(r"https:\/\/app\.primevideo\.com\/detail\?.*"))
 async def primevideo_handler(client: Client, message: Message):
     """Handles messages containing Prime Video links."""
     url = message.text  # Get the URL from the message
@@ -155,32 +153,9 @@ async def primevideo_handler(client: Client, message: Message):
 
 
 # Command handler to start the bot
-@app.on_message(filters.command("start"))
+@Bot.on_message(filters.command("start"))
 async def start_command(client: Client, message: Message):
     """Start Command"""
     await message.reply_text(
         "Hello! Send me a Prime Video link, and I'll try to download and upload it for you. I will respond with the state of the download, upload and if it finished successfully. The progress is displayed on the console. Send a photo to set it as a custom thumbnail. You can also set custom captions for the video and a 4 GB File Restriction is applied."
     )
-
-
-async def main():
-    # Your bot setup code here...
-    print("Starting the bot...")
-    await app.start()
-    print("Bot started successfully!")
-
-    # Keep the event loop running until a signal to stop is received
-    print("Bot is now running indefinitely. Press Ctrl+C to stop.")
-    idle_future = asyncio.Future()  # Create a Future object
-    try:
-      await idle_future #Await to keep event loop running
-    except KeyboardInterrupt:
-      print("Keyboard interrupt detected. Stopping the bot...") #Handles the Keyboard Interruption
-
-    print("Stopping the bot...")
-    await app.stop()
-    print("Bot stopped.")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
