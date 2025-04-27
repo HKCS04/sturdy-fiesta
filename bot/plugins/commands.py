@@ -27,14 +27,6 @@ OWNER_ID = "8083702486"
 
 MAX_FILE_SIZE = 4 * 1024 * 1024 * 1024  # 4GB
 
-# Initialize Pyrogram Client
-app = Client(
-    "TeraLinkUploaderBot",
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
-)
-
 # Global variables to store custom settings
 CUSTOM_THUMBNAILS = {}
 CUSTOM_CAPTIONS = {}
