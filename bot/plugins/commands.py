@@ -4,8 +4,19 @@ import re
 import requests
 from pyrogram import Client, filters
 from pyrogram.types import Message, InputMediaDocument
+from dotenv import load_dotenv
 import yt_dlp  # Using yt-dlp instead of youtube_dl
-from PIL import Image  # for basic image validation
+
+# Load environment variables
+load_dotenv()
+
+# Telegram API credentials
+API_ID = int(os.environ.get("API_ID"))
+API_HASH = os.environ.get("API_HASH")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+
+# Initialize Pyrogram client
+app = Client("hotstar_downloader", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 # Progress Bar Characters
 BAR_FILLED = "█"
@@ -50,6 +61,13 @@ async def download_and_upload(message: Message, url: str):
             'outtmpl': '%(title)s.%(ext)s',  # Output template
             'merge_output_format': 'mkv',  # Force mkv output to merge video and audio
             'progress_hooks': [progress_hook],  # Add the progress hook for console output
+            'extractor_args': {  # Add these lines for wider support.  Experiment if needed.
+                'hotstar': {
+                    'force_cleartext': True, # attempt to extract the cleartext DASH manifest, this may or may not work depending on the encryption used
+                }
+            },
+             'rejecttitle': True, # DRM is usually present
+             'ignoreerrors': True # DRM is usually present
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(url, download=True)  # Download the url file
@@ -106,7 +124,7 @@ async def upload_progress(current, total, chat_id, message_text):
 
 
 # Command handler for setting custom thumbnail using user-sent image
-@Client.on_message(filters.photo)  # Listen for photo messages
+@app.on_message(filters.photo)  # Listen for photo messages
 async def setthumbnail_photo(client: Client, message: Message):
     """Sets the custom thumbnail to the photo sent by the user."""
     user_id = message.chat.id
@@ -138,10 +156,10 @@ async def setcaption_command(client: Client, message: Message):
     else:
         await message.reply_text("Usage: /setcaption <custom_caption>")
 
-# Message handler for Prime Video links
-@Client.on_message(filters.regex(r"https:\/\/app\.primevideo\.com\/detail\?.*"))
-async def primevideo_handler(client: Client, message: Message):
-    """Handles messages containing Prime Video links."""
+# Message handler for Hotstar links
+@Client.on_message(filters.regex(r"https:\/\/www\.hotstar\.com\/in\/.*\/watch"))
+async def hotstar_handler(client: Client, message: Message):
+    """Handles messages containing Hotstar links."""
     url = message.text  # Get the URL from the message
     await download_and_upload(message, url)
 
@@ -151,5 +169,5 @@ async def primevideo_handler(client: Client, message: Message):
 async def start_command(client: Client, message: Message):
     """Start Command"""
     await message.reply_text(
-        "Hello! Send me a Prime Video link, and I'll try to download and upload it for you. I will respond with the state of the download, upload and if it finished successfully. The progress is displayed on the console. Send a photo to set it as a custom thumbnail. You can also set custom captions for the video and a 4 GB File Restriction is applied."
+        "Hello! Send me a Hotstar link, and I'll try to download and upload it for you. I will respond with the state of the download, upload and if it finished successfully. The progress is displayed on the console. You can also set custom thumbnail and captions for the video and a 4 GB File Restriction is applied."
     )
