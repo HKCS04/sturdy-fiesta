@@ -2,7 +2,7 @@ import os
 import asyncio
 import re
 import requests
-from bot import Bot
+from .bot import Bot
 from pyrogram import Client, filters
 from pyrogram.types import Message, InputMediaDocument
 import yt_dlp  # Using yt-dlp instead of youtube_dl
