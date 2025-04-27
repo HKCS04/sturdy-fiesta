@@ -4,19 +4,8 @@ import re
 import requests
 from pyrogram import Client, filters
 from pyrogram.types import Message, InputMediaDocument
-from dotenv import load_dotenv
-import yt_dlp  # Using yt-dlp instead of youtube_dl
-
-# Load environment variables
-load_dotenv()
-
-# Telegram API credentials
-API_ID = int(os.environ.get("API_ID"))
-API_HASH = os.environ.get("API_HASH")
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-
-# Initialize Pyrogram client
-app = Client("hotstar_downloader", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+import yt_dlp
+from PIL import Image
 
 # Progress Bar Characters
 BAR_FILLED = "█"
