@@ -2,7 +2,6 @@ import os
 import asyncio
 import re
 import requests
-from .bot import Bot
 from pyrogram import Client, filters
 from pyrogram.types import Message, InputMediaDocument
 import yt_dlp  # Using yt-dlp instead of youtube_dl
@@ -107,7 +106,7 @@ async def upload_progress(current, total, chat_id, message_text):
 
 
 # Command handler for setting custom thumbnail using user-sent image
-@Bot.on_message(filters.photo)  # Listen for photo messages
+@Client.on_message(filters.photo)  # Listen for photo messages
 async def setthumbnail_photo(client: Client, message: Message):
     """Sets the custom thumbnail to the photo sent by the user."""
     user_id = message.chat.id
@@ -128,7 +127,7 @@ async def setthumbnail_photo(client: Client, message: Message):
             os.remove(file_path)
 
 # Command handler for setting custom caption
-@Bot.on_message(filters.command("setcaption"))
+@Client.on_message(filters.command("setcaption"))
 async def setcaption_command(client: Client, message: Message):
     """Sets a custom caption for the user."""
     user_id = message.chat.id
@@ -140,7 +139,7 @@ async def setcaption_command(client: Client, message: Message):
         await message.reply_text("Usage: /setcaption <custom_caption>")
 
 # Message handler for Prime Video links
-@Bot.on_message(filters.regex(r"https:\/\/app\.primevideo\.com\/detail\?.*"))
+@Client.on_message(filters.regex(r"https:\/\/app\.primevideo\.com\/detail\?.*"))
 async def primevideo_handler(client: Client, message: Message):
     """Handles messages containing Prime Video links."""
     url = message.text  # Get the URL from the message
@@ -148,7 +147,7 @@ async def primevideo_handler(client: Client, message: Message):
 
 
 # Command handler to start the bot
-@Bot.on_message(filters.command("start"))
+@Client.on_message(filters.command("start"))
 async def start_command(client: Client, message: Message):
     """Start Command"""
     await message.reply_text(
