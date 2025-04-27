@@ -7,7 +7,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # Telegram API credentials
-BOT_TOKEN = "8087264479:AAEb7KMTxotET82ZW2xfXydCLpTj0uHsWLc"
+TG_BOT_TOKEN = "8087264479:AAEb7KMTxotET82ZW2xfXydCLpTj0uHsWLc"
 APP_ID = "22136772"
 API_HASH = "7541e5b6d298eb1f60dac89aae92868c"
 
