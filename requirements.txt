@@ -6,3 +6,4 @@ hachoir
 requests
 yt-dlp
 pillow
+pyromod
