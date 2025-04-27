@@ -1,4 +1,4 @@
-from aiohttp import web
+from aiohttp import web as webserver
 import pyromod.listen
 from pyrogram import Client
 from pyrogram.enums import ParseMode
@@ -7,12 +7,11 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # Telegram API credentials
-TG_BOT_TOKEN = "8087264479:AAEb7KMTxotET82ZW2xfXydCLpTj0uHsWLc"
-APP_ID = "22136772"
+BOT_TOKEN = "8087264479:AAEb7KMTxotET82ZW2xfXydCLpTj0uHsWLc"
+API_ID = "22136772"
 API_HASH = "7541e5b6d298eb1f60dac89aae92868c"
 
 PORT = "8080"
-TG_BOT_WORKERS = "4"
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s - %(levelname)s] - %(name)s - %(message)s",
@@ -42,6 +41,11 @@ async def web_server():
     web_app.add_routes(routes)
     return web_app
 
+async def bot_run():
+    _app = webserver.Application(client_max_size=30000000)
+    _app.add_routes(routes)
+    return _app
+
 
 
 
@@ -65,32 +69,36 @@ ascii_art = """
 class Bot(Client):
     def __init__(self):
         super().__init__(
-            name="Bot",
+            "bot",
             api_hash=API_HASH,
-            api_id=APP_ID,
+            api_id=API_ID,
             plugins={
-                "root": "plugins"
+                "root": "bot/plugins"
             },
-            workers=TG_BOT_WORKERS,
-            bot_token=TG_BOT_TOKEN
+            workers=200,
+            bot_token=BOT_TOKEN,
+            sleep_threshold=10
         )
         self.LOGGER = LOGGER
 
     async def start(self):
         await super().start()
-        usr_bot_me = await self.get_me()
-        self.uptime = datetime.now()
-        self.set_parse_mode(ParseMode.HTML)
-        self.LOGGER(__name__).info(f"Bot Running..!\n\nCreated by \nhttps://t.me/AstroBotz")
-        print(ascii_art)
-        print("""Welcome to CodeXBotz File Sharing Bot""")
-        self.username = usr_bot_me.username
-        #web-response
-        app = web.AppRunner(await web_server())
-        await app.setup()
+        
+        client = webserver.AppRunner(await bot_run())
+        await client.setup()
         bind_address = "0.0.0.0"
-        await web.TCPSite(app, bind_address, PORT).start()
+        await webserver.TCPSite(client, bind_address,
+        PORT_CODE).start()
+        
+        bot_details = await self.get_me()
+        self.set_parse_mode(enums.ParseMode.HTML)
+        self.LOGGER(__name__).info(
+            f"@{bot_details.username}  started! "
+        )
+        print(ascii_art)
+        self.USER, self.USER_ID = await User().start()
+        
 
     async def stop(self, *args):
         await super().stop()
-        self.LOGGER(__name__).info("Bot stopped.")
+        self.LOGGER(__name__).info("Bot stopped. Bye.")
