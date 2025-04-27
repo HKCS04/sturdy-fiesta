@@ -113,7 +113,7 @@ async def upload_progress(current, total, chat_id, message_text):
 
 
 # Command handler for setting custom thumbnail using user-sent image
-@app.on_message(filters.photo)  # Listen for photo messages
+@Client.on_message(filters.photo)  # Listen for photo messages
 async def setthumbnail_photo(client: Client, message: Message):
     """Sets the custom thumbnail to the photo sent by the user."""
     user_id = message.chat.id
