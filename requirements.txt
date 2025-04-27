@@ -1,4 +1,4 @@
 pyrogram
 tgcrypto
-ytdlp
+yt-dlp
 pillow
