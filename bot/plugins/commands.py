@@ -4,6 +4,8 @@ import re
 import time
 import traceback
 from io import BytesIO
+import logging
+
 import aiohttp
 import pyrogram
 import requests
@@ -18,9 +20,26 @@ from pyrogram.types import InputMediaPhoto
 from pyrogram.types import Message as MSG
 from yt_dlp import YoutubeDL
 
-OWNER_ID = "8083702486"  # Your Telegram User ID
+# Configure Logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Replace with your API ID and API HASH from my.telegram.org
+API_ID = int(os.environ.get("API_ID", "YOUR_API_ID"))
+API_HASH = os.environ.get("API_HASH", "YOUR_API_HASH")
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN")
+OWNER_ID = int(os.environ.get("OWNER_ID", "YOUR_ID"))  # Your Telegram User ID
 
 MAX_FILE_SIZE = 4 * 1024 * 1024 * 1024  # 4GB
+
+# Initialize Pyrogram Client
+app = Client(
+    "TeraLinkUploaderBot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN,
+)
+
+# Global variables to store custom settings
 CUSTOM_THUMBNAILS = {}
 CUSTOM_CAPTIONS = {}
 
@@ -105,8 +124,8 @@ async def upload_progress(current, total, message: MSG, start_time, file_name):
 async def start_command(client: Client, message: Message):
     """Handles the /start command."""
     await message.reply_text(
-        "Hi! I'm a Terabox link downloader and uploader bot.\n"
-        "Send me a Terabox link and I'll download the file and upload it to Telegram.\n\n"
+        "Hi! I'm a TeraLink downloader and uploader bot.\n"
+        "Send me a TeraFileshare or Terabox link and I'll download the file and upload it to Telegram.\n\n"
         "**Commands:**\n"
         "/start - Start the bot\n"
         "/set_thumbnail - Set a custom thumbnail\n"
@@ -167,42 +186,75 @@ def get_terabox_direct_link(terabox_url):
         direct_link = data.get("direct_link")
         return direct_link
     except requests.exceptions.RequestException as e:
-        print(f"Error during request: {e}")
+        logging.error(f"Error during request: {e}")
         return None
     except (ValueError, KeyError) as e:
-        print(f"Error parsing JSON: {e}")
+        logging.error(f"Error parsing JSON: {e}")
         return None
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logging.error(f"An unexpected error occurred: {e}")
         return None
 
-async def download_and_upload(client: Client, message: Message, terabox_link: str):
-    """Downloads a file from Terabox and uploads it to Telegram."""
-    user_id = message.from_user.id
+def get_terafileshare_direct_link(terafileshare_url):
+    """Extracts the direct download link from a TeraFileshare URL."""
+    try:
+        response = requests.get(terafileshare_url)
+        response.raise_for_status()
+        # Check if request was successful
 
-    # Get direct link from Terabox link
-    direct_link = get_terabox_direct_link(terabox_link)
+        # Extract download link using regex.  More robust regex.
+        download_link_match = re.search(r'href="(https?://[^"]*?download[^"]*)"', response.text)
+        if download_link_match:
+            direct_link = download_link_match.group(1)
+            return direct_link
+        else:
+            logging.warning("No direct download link found in the HTML.")
+            return None
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error during request: {e}")
+        return None
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+        return None
+
+async def download_and_upload(client: Client, message: Message, link: str):
+    """Downloads a file and uploads it to Telegram, handling both Terabox and TeraFileshare links."""
+    user_id = message.from_user.id
+    direct_link = None
+
+    # Determine the link type and extract the direct link
+    if "terabox.com" in link:
+        logging.info("Detected Terabox link.")
+        direct_link = get_terabox_direct_link(link)
+    elif "terafileshare.com" in link:
+        logging.info("Detected TeraFileshare link.")
+        direct_link = get_terafileshare_direct_link(link)
+    else:
+        await message.reply_text("Unsupported link type.  Only Terabox and TeraFileshare links are supported.")
+        return
 
     if not direct_link:
-        await message.reply_text("Failed to extract the direct download link from the Terabox URL.")
+        await message.reply_text("Failed to extract the direct download link.")
         return
 
     try:
         file_name = direct_link.split("/")[-1]  # Simplified file name extraction
     except:
-        file_name = "TeraboxFile"
+        file_name = "FileFromLink"
 
 
     # Check file size before downloading
     async with aiohttp.ClientSession() as session:
         try:
-            async with session.head(direct_link) as resp:
+            async with session.head(direct_link, allow_redirects=True) as resp: # allow_redirects=True important
                 file_size = int(resp.headers.get('Content-Length', 0))
                 if file_size > MAX_FILE_SIZE:
                     await message.reply_text(f"File size exceeds the maximum allowed size of 4GB. File size: {file_size / (1024 * 1024 * 1024):.2f} GB")
                     return
         except Exception as e:
             await message.reply_text(f"Failed to check file size. Error: {str(e)}")
+            logging.error(f"File size check error: {e}")
             return
 
 
@@ -213,7 +265,7 @@ async def download_and_upload(client: Client, message: Message, terabox_link: st
 
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(direct_link) as response:
+            async with session.get(direct_link, allow_redirects=True) as response: # allow_redirects=True here too!
                 if response.status == 200:
                     total_size = int(response.headers.get('Content-Length', 0))
                     downloaded_size = 0
@@ -265,7 +317,7 @@ async def download_and_upload(client: Client, message: Message, terabox_link: st
 
 
             # Default caption
-            caption = CUSTOM_CAPTIONS.get(user_id, f"Uploaded by @{app.me.username}")
+            caption = CUSTOM_CAPTIONS.get(user_id, f"Uploaded by @{Client.me.username}")
 
             # Get video duration for proper display in Telegram.  This is important
             duration = 0 # Set Default
@@ -294,6 +346,7 @@ async def download_and_upload(client: Client, message: Message, terabox_link: st
 
         except Exception as e:
             await message.reply_text(f"Upload failed: {e}\n\n{traceback.format_exc()}") # Provide full traceback
+            logging.error(f"Upload error: {e}\n{traceback.format_exc()}")
 
     finally:
         try:
@@ -302,8 +355,8 @@ async def download_and_upload(client: Client, message: Message, terabox_link: st
             print(f"Failed to delete temporary file: {e}")
 
 
-@Client.on_message(filters.regex(r"https?://(www\.)?terabox\.com/\S+"))
-async def terabox_link_handler(client: Client, message: Message):
-    """Handles messages containing Terabox links."""
-    terabox_link = message.text.strip()
-    await download_and_upload(client, message, terabox_link)
+@Client.on_message(filters.regex(r"https?://(?:www\.)?(terabox\.com|terafileshare\.com)/\S+"))
+async def link_handler(client: Client, message: Message):
+    """Handles messages containing Terabox and TeraFileshare links."""
+    link = message.text.strip()
+    await download_and_upload(client, message, link)
