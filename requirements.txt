@@ -1,4 +1,8 @@
 pyrogram
 tgcrypto
+asyncio
+aiohttp
+hachoir
+requests
 yt-dlp
 pillow
