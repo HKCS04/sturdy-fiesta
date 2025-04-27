@@ -164,10 +164,19 @@ async def start_command(client: Client, message: Message):
 
 
 async def main():
+    # Your bot setup code here...
     print("Starting the bot...")
     await app.start()
     print("Bot started successfully!")
-    await asyncio.idle()
+
+    # Keep the event loop running until a signal to stop is received
+    print("Bot is now running indefinitely. Press Ctrl+C to stop.")
+    idle_future = asyncio.Future()  # Create a Future object
+    try:
+      await idle_future #Await to keep event loop running
+    except KeyboardInterrupt:
+      print("Keyboard interrupt detected. Stopping the bot...") #Handles the Keyboard Interruption
+
     print("Stopping the bot...")
     await app.stop()
     print("Bot stopped.")
