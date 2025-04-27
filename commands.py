@@ -8,11 +8,6 @@ from pyrogram.types import Message, InputMediaDocument
 import yt_dlp  # Using yt-dlp instead of youtube_dl
 from PIL import Image  # for basic image validation
 
-# Telegram API credentials
-BOT_TOKEN = "8087264479:AAEb7KMTxotET82ZW2xfXydCLpTj0uHsWLc"
-API_ID = "22136772"
-API_HASH = "7541e5b6d298eb1f60dac89aae92868c"
-
 # Progress Bar Characters
 BAR_FILLED = "█"
 BAR_EMPTY = "░"
