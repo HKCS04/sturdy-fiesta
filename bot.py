@@ -30,7 +30,7 @@ logging.getLogger("pyrogram").setLevel(logging.WARNING)
 def LOGGER(name: str) -> logging.Logger:
     return logging.getLogger(name)
 
-routes = web.RouteTableDef()
+routes = webserver.RouteTableDef()
 
 @routes.get("/", allow_head=True)
 async def root_route_handler(request):
