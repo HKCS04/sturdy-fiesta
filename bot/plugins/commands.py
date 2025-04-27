@@ -23,11 +23,7 @@ from yt_dlp import YoutubeDL
 # Configure Logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Replace with your API ID and API HASH from my.telegram.org
-API_ID = int(os.environ.get("API_ID", "YOUR_API_ID"))
-API_HASH = os.environ.get("API_HASH", "YOUR_API_HASH")
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN")
-OWNER_ID = int(os.environ.get("OWNER_ID", "YOUR_ID"))  # Your Telegram User ID
+OWNER_ID = "8083702486"
 
 MAX_FILE_SIZE = 4 * 1024 * 1024 * 1024  # 4GB
 
