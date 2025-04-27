@@ -11,7 +11,7 @@ BOT_TOKEN = "8087264479:AAEb7KMTxotET82ZW2xfXydCLpTj0uHsWLc"
 API_ID = "22136772"
 API_HASH = "7541e5b6d298eb1f60dac89aae92868c"
 
-PORT = "8080"
+PORT_CODE = "8080"
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s - %(levelname)s] - %(name)s - %(message)s",
